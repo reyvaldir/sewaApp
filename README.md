@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Costume Rental Management System
 
-## Getting Started
+Protokol untuk menjalankan proyek ini di mesin lokal:
 
-First, run the development server:
+## Prasyarat
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- [Node.js](https://nodejs.org/) (v18+)
+- [pnpm](https://pnpm.io/)
+- [Docker & Docker Desktop](https://www.docker.com/products/docker-desktop/)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Langkah-langkah Quick Start
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Install Dependencies**
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+   ```bash
+   pnpm install
+   ```
 
-## Learn More
+2. **Jalankan Database (Docker)**
+   Pastikan Docker Desktop sudah aktif, lalu jalankan:
 
-To learn more about Next.js, take a look at the following resources:
+   ```bash
+   docker-compose up -d
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. **Inisialisasi Database (Prisma)**
+   Lakukan sinkronisasi skema dan generate client:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   ```bash
+   npx prisma generate
+   npx prisma db push
+   ```
 
-## Deploy on Vercel
+4. **Isi Data Awal (Seeding)**
+   Jalankan script untuk mengisi 3 kategori, 5 master produk, 1 bundle, dan 17 unit inventory:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+   ```bash
+   node prisma/seed.js
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+5. **Jalankan Aplikasi**
+   ```bash
+   pnpm dev
+   ```
+   Akses di [http://localhost:3000/pos](http://localhost:3000/pos)
+
+## Fitur Saat Ini
+
+- **POS Interface**: UI Kasir yang modern dengan Sidebar Produk dan Sidebar Order.
+- **Database Integration**: Menggunakan PostgreSQL (Docker) & Prisma ORM.
+- **KTP Guarantee**: Sistem jaminan KTP untuk membebaskan deposit nominal uang.
+- **Automatic Availability**: Status unit (Tersedia/Sewa) terupdate otomatis di UI.

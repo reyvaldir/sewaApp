@@ -7,7 +7,6 @@ export async function getProducts() {
     const products = await prisma.product.findMany({
       include: {
         category: true,
-        // Calculate availability directly via Prisma count
         _count: {
           select: {
             inventoryUnits: {
@@ -23,7 +22,13 @@ export async function getProducts() {
       },
     });
 
-    return products;
+    // Prisma Decimals are not serializable by React Server Components automatically.
+    // Map them to plain JavaScript Numbers before returning.
+    return products.map((product) => ({
+      ...product,
+      pricePerDay: Number(product.pricePerDay),
+      replacementCost: Number(product.replacementCost),
+    }));
   } catch (error) {
     console.error("Error fetching products:", error);
     throw new Error("Failed to fetch products.");
@@ -59,7 +64,19 @@ export async function getBundles() {
       },
     });
 
-    return bundles;
+    // Handle Decimal fields mapping for Bundles
+    return bundles.map((bundle) => ({
+      ...bundle,
+      pricePerDay: Number(bundle.pricePerDay),
+      items: bundle.items.map((item) => ({
+        ...item,
+        product: {
+          ...item.product,
+          pricePerDay: Number(item.product.pricePerDay),
+          replacementCost: Number(item.product.replacementCost),
+        },
+      })),
+    }));
   } catch (error) {
     console.error("Error fetching bundles:", error);
     throw new Error("Failed to fetch bundles.");
