@@ -15,6 +15,7 @@ import {
   Camera,
   Upload,
   X,
+  RefreshCcw,
 } from "lucide-react";
 import { getProducts, getCategories } from "@/app/actions/pos";
 
@@ -52,6 +53,9 @@ export default function POSPage() {
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [isKtpExpanded, setIsKtpExpanded] = useState(false);
   const [isGuaranteeModalOpen, setIsGuaranteeModalOpen] = useState(false);
+  const [facingMode, setFacingMode] = useState<"user" | "environment">(
+    "environment",
+  );
 
   // Close calendar when clicking outside
   useEffect(() => {
@@ -176,11 +180,19 @@ export default function POSPage() {
   };
 
   // WebRTC Camera Logic
-  const openCamera = async () => {
+  const openCamera = async (mode: "user" | "environment" = facingMode) => {
     setIsCameraOpen(true);
+    setFacingMode(mode);
+
+    // Stop existing stream to avoid keeping multiple cameras active
+    if (videoRef.current && videoRef.current.srcObject) {
+      const currentStream = videoRef.current.srcObject as MediaStream;
+      currentStream.getTracks().forEach((track) => track.stop());
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
+        video: { facingMode: mode },
       });
       setCameraStream(stream);
       if (videoRef.current) {
@@ -188,11 +200,37 @@ export default function POSPage() {
       }
     } catch (err) {
       console.error("Error accessing camera:", err);
-      alert(
-        "Unable to access camera. Please ensure you have granted permission.",
-      );
-      setIsCameraOpen(false);
+      // Fallback for desktops or devices without a rear/environment camera
+      if (mode === "environment") {
+        console.log("Environment camera failed, falling back to user camera.");
+        try {
+          const fallbackStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "user" },
+          });
+          setFacingMode("user");
+          setCameraStream(fallbackStream);
+          if (videoRef.current) {
+            videoRef.current.srcObject = fallbackStream;
+          }
+        } catch (fallbackErr) {
+          console.error("Fallback camera failed:", fallbackErr);
+          alert(
+            "Unable to access any camera. Please ensure you have granted permission.",
+          );
+          setIsCameraOpen(false);
+        }
+      } else {
+        alert(
+          "Unable to access camera. Please ensure you have granted permission.",
+        );
+        setIsCameraOpen(false);
+      }
     }
+  };
+
+  const switchCamera = () => {
+    const newMode = facingMode === "environment" ? "user" : "environment";
+    openCamera(newMode);
   };
 
   const closeCamera = () => {
@@ -228,6 +266,15 @@ export default function POSPage() {
       }
     };
   }, [cameraStream]);
+
+  // Safely attach stream to video element when it becomes available
+  useEffect(() => {
+    if (isCameraOpen && cameraStream && videoRef.current) {
+      if (videoRef.current.srcObject !== cameraStream) {
+        videoRef.current.srcObject = cameraStream;
+      }
+    }
+  }, [isCameraOpen, cameraStream]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
@@ -628,12 +675,22 @@ export default function POSPage() {
           <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
             <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
               <h3 className="font-bold text-gray-800">Take Photo of KTP</h3>
-              <button
-                onClick={closeCamera}
-                className="text-gray-500 hover:text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-full p-2 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={switchCamera}
+                  className="flex items-center gap-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors shadow-sm"
+                  title="Switch Camera"
+                >
+                  <RefreshCcw className="w-4 h-4" />
+                  Flip
+                </button>
+                <button
+                  onClick={closeCamera}
+                  className="text-gray-500 hover:text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-full p-2 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
             <div className="p-6 flex flex-col items-center">
               <div className="relative w-full aspect-video bg-black rounded-xl overflow-hidden mb-6 shadow-inner">
@@ -641,6 +698,7 @@ export default function POSPage() {
                   ref={videoRef}
                   autoPlay
                   playsInline
+                  muted
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 border-2 border-dashed border-white/40 m-8 rounded-lg pointer-events-none" />
