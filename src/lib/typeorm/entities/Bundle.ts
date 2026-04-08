@@ -5,11 +5,14 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
-  Relation,
+  type Relation,
 } from "typeorm";
 import { ObjectType, Field, ID, Float } from "type-graphql";
 import { BundleItem } from "./BundleItem";
+import type { BundleItem as IBundleItem } from "./BundleItem";
+
 import { RentalItem } from "./RentalItem";
+import type { RentalItem as IRentalItem } from "./RentalItem";
 
 @ObjectType()
 @Entity("bundles")
@@ -28,11 +31,11 @@ export class Bundle {
 
   @Field(() => [BundleItem], { nullable: true })
   @OneToMany(() => BundleItem, (item) => item.bundle)
-  items: Relation<BundleItem[]>;
+  items: Relation<IBundleItem[]>;
 
   @Field(() => [RentalItem], { nullable: true })
   @OneToMany(() => RentalItem, (rental) => rental.bundle)
-  rentals: Relation<RentalItem[]>;
+  rentals: Relation<IRentalItem[]>;
 
   @Field()
   @CreateDateColumn({ name: "created_at" })

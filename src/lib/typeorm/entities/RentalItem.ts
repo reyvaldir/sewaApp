@@ -4,12 +4,18 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
-  Relation,
+  type Relation,
 } from "typeorm";
 import { ObjectType, Field, ID, Float } from "type-graphql";
 import { Rental } from "./Rental";
+import type { Rental as IRental } from "./Rental";
+
 import { InventoryUnit } from "./InventoryUnit";
+import type { InventoryUnit as IInventoryUnit } from "./InventoryUnit";
+
 import { Bundle } from "./Bundle";
+import type { Bundle as IBundle } from "./Bundle";
+
 
 @ObjectType()
 @Entity("rental_items")
@@ -25,7 +31,7 @@ export class RentalItem {
   @Field(() => Rental, { nullable: true })
   @ManyToOne(() => Rental, (rental) => rental.items)
   @JoinColumn({ name: "rental_id" })
-  rental: Relation<Rental>;
+  rental: Relation<IRental>;
 
   @Field()
   @Column({ name: "inventory_unit_id" })
@@ -34,7 +40,7 @@ export class RentalItem {
   @Field(() => InventoryUnit, { nullable: true })
   @ManyToOne(() => InventoryUnit, (unit) => unit.rentalItems)
   @JoinColumn({ name: "inventory_unit_id" })
-  inventoryUnit: Relation<InventoryUnit>;
+  inventoryUnit: Relation<IInventoryUnit>;
 
   @Field({ nullable: true })
   @Column({ name: "bundle_id", nullable: true })
@@ -43,7 +49,7 @@ export class RentalItem {
   @Field(() => Bundle, { nullable: true })
   @ManyToOne(() => Bundle, (bundle) => bundle.rentals, { nullable: true })
   @JoinColumn({ name: "bundle_id" })
-  bundle: Relation<Bundle>;
+  bundle: Relation<IBundle>;
 
   @Field(() => Float)
   @Column("decimal", { precision: 10, scale: 2 })

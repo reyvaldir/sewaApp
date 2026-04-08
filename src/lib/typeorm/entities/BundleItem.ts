@@ -5,11 +5,15 @@ import {
   ManyToOne,
   JoinColumn,
   Unique,
-  Relation,
+  type Relation,
 } from "typeorm";
 import { ObjectType, Field, ID, Int } from "type-graphql";
 import { Bundle } from "./Bundle";
+import type { Bundle as IBundle } from "./Bundle";
+
 import { Product } from "./Product";
+import type { Product as IProduct } from "./Product";
+
 
 @ObjectType()
 @Entity("bundle_items")
@@ -26,7 +30,7 @@ export class BundleItem {
   @Field(() => Bundle, { nullable: true })
   @ManyToOne(() => Bundle, (bundle) => bundle.items)
   @JoinColumn({ name: "bundle_id" })
-  bundle: Relation<Bundle>;
+  bundle: Relation<IBundle>;
 
   @Field()
   @Column({ name: "product_id" })
@@ -35,7 +39,7 @@ export class BundleItem {
   @Field(() => Product, { nullable: true })
   @ManyToOne(() => Product, (product) => product.bundleItems)
   @JoinColumn({ name: "product_id" })
-  product: Relation<Product>;
+  product: Relation<IProduct>;
 
   @Field(() => Int)
   @Column({ default: 1 })

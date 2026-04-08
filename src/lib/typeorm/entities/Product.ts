@@ -7,12 +7,18 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
-  Relation,
+  type Relation,
 } from "typeorm";
 import { ObjectType, Field, ID, Float, Int } from "type-graphql";
 import { Category } from "./Category";
+import type { Category as ICategory } from "./Category";
+
 import { InventoryUnit } from "./InventoryUnit";
+import type { InventoryUnit as IInventoryUnit } from "./InventoryUnit";
+
 import { BundleItem } from "./BundleItem";
+import type { BundleItem as IBundleItem } from "./BundleItem";
+
 
 @ObjectType()
 @Entity("products")
@@ -44,15 +50,15 @@ export class Product {
   @Field(() => Category, { nullable: true })
   @ManyToOne(() => Category, (category) => category.products)
   @JoinColumn({ name: "category_id" })
-  category: Relation<Category>;
+  category: Relation<ICategory>;
 
   @Field(() => [InventoryUnit], { nullable: true })
   @OneToMany(() => InventoryUnit, (unit) => unit.product)
-  inventoryUnits: Relation<InventoryUnit[]>;
+  inventoryUnits: Relation<IInventoryUnit[]>;
 
   @Field(() => [BundleItem], { nullable: true })
   @OneToMany(() => BundleItem, (item) => item.product)
-  bundleItems: Relation<BundleItem[]>;
+  bundleItems: Relation<IBundleItem[]>;
 
   @Field()
   @CreateDateColumn({ name: "created_at" })

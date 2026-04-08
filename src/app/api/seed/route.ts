@@ -6,9 +6,13 @@ import {
   InventoryUnit,
   UnitStatus,
 } from "@/lib/typeorm/entities/InventoryUnit";
+import { User } from "@/lib/typeorm/entities/User";
+import bcrypt from "bcryptjs";
 
 export async function GET() {
   try {
+    // Force Schema Sync in seed
+    AppDataSource.setOptions({ synchronize: true, logging: true });
     if (!AppDataSource.isInitialized) {
       await AppDataSource.initialize();
     }
@@ -19,7 +23,20 @@ export async function GET() {
 
     // Clear existing data securely using Postgres CASCADE
     await AppDataSource.query(
-      "TRUNCATE TABLE inventory_units, products, categories, bundle_items, bundles, rental_items, rentals, customers CASCADE;",
+      "TRUNCATE TABLE users, inventory_units, products, categories, bundle_items, bundles, rental_items, rentals, customers CASCADE;",
+    );
+
+    const userRepo = AppDataSource.getRepository(User);
+
+    // Create Admin User
+    const hashedPassword = await bcrypt.hash("password123", 10);
+    await userRepo.save(
+      userRepo.create({
+        name: "Admin Kasir",
+        username: "admin",
+        password: hashedPassword,
+        role: "admin",
+      }),
     );
 
     // Create Categories
@@ -73,47 +90,47 @@ export async function GET() {
     // Create Inventory Units
     await inventoryRepo.save([
       inventoryRepo.create({
-        product: genshinSword,
+        product: { id: genshinSword.id },
         barcode: "SWORD01",
         status: UnitStatus.AVAILABLE,
       }),
       inventoryRepo.create({
-        product: genshinSword,
+        product: { id: genshinSword.id },
         barcode: "SWORD02",
         status: UnitStatus.AVAILABLE,
       }),
       inventoryRepo.create({
-        product: genshinOutfit,
+        product: { id: genshinOutfit.id },
         barcode: "RAIDEN-M01",
         size: "M",
         status: UnitStatus.AVAILABLE,
       }),
       inventoryRepo.create({
-        product: genshinOutfit,
+        product: { id: genshinOutfit.id },
         barcode: "RAIDEN-L01",
         size: "L",
         status: UnitStatus.AVAILABLE,
       }),
       inventoryRepo.create({
-        product: narutoCloak,
+        product: { id: narutoCloak.id },
         barcode: "AKA-01",
         size: "All Size",
         status: UnitStatus.AVAILABLE,
       }),
       inventoryRepo.create({
-        product: narutoCloak,
+        product: { id: narutoCloak.id },
         barcode: "AKA-02",
         size: "All Size",
         status: UnitStatus.RENTED,
       }),
       inventoryRepo.create({
-        product: mitsuriOutfit,
+        product: { id: mitsuriOutfit.id },
         barcode: "MIT-S01",
         size: "S",
         status: UnitStatus.AVAILABLE,
       }),
       inventoryRepo.create({
-        product: mitsuriOutfit,
+        product: { id: mitsuriOutfit.id },
         barcode: "MIT-M01",
         size: "M",
         status: UnitStatus.AVAILABLE,

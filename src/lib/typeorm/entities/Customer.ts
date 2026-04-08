@@ -5,10 +5,12 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
-  Relation,
+  type Relation,
 } from "typeorm";
 import { ObjectType, Field, ID } from "type-graphql";
 import { Rental } from "./Rental";
+import type { Rental as IRental } from "./Rental";
+
 
 @ObjectType()
 @Entity("customers")
@@ -35,7 +37,7 @@ export class Customer {
 
   @Field(() => [Rental], { nullable: true })
   @OneToMany(() => Rental, (rental) => rental.customer)
-  rentals: Relation<Rental[]>;
+  rentals: Relation<IRental[]>;
 
   @Field()
   @CreateDateColumn({ name: "created_at" })

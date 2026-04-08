@@ -41,3 +41,21 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# sewaApp logs and scratch files
+*.log
+*.txt
+*.html
+/fix-types.js
+/fix-double-i.js
+/force-sync.ts
+/stitch-pos.html
+/stitch_login_code.html
+/tsc-errors.log
+/db_logs.txt
+/error-log.txt
+/error-log2.txt
+/prisma.log
+/build.log
+/help.txt
+/logs.txt

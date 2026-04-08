@@ -10,6 +10,7 @@ import { BundleItem } from "./entities/BundleItem";
 import { Customer } from "./entities/Customer";
 import { Rental } from "./entities/Rental";
 import { RentalItem } from "./entities/RentalItem";
+import { User } from "./entities/User";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
@@ -18,7 +19,11 @@ export const AppDataSource = new DataSource({
     "postgresql://tenant:supersecretpassword@localhost:5432/sewaapp",
   synchronize: process.env.NODE_ENV !== "production", // Auto-create tables in dev
   logging: process.env.NODE_ENV !== "production",
+  ssl: process.env.DATABASE_URL?.includes("neon.tech")
+    ? { rejectUnauthorized: false }
+    : false,
   entities: [
+    User,
     Category,
     Product,
     InventoryUnit,

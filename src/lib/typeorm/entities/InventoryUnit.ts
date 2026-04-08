@@ -7,11 +7,15 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
-  Relation,
+  type Relation,
 } from "typeorm";
 import { ObjectType, Field, ID, registerEnumType } from "type-graphql";
 import { Product } from "./Product";
+import type { Product as IProduct } from "./Product";
+
 import { RentalItem } from "./RentalItem";
+import type { RentalItem as IRentalItem } from "./RentalItem";
+
 
 export enum UnitStatus {
   AVAILABLE = "AVAILABLE",
@@ -42,6 +46,10 @@ export class InventoryUnit {
   })
   status: UnitStatus;
 
+  @Field({ nullable: true })
+  @Column({ type: "varchar", length: 50, nullable: true })
+  size?: string;
+
   @Field()
   @Column({ name: "product_id" })
   productId: string;
@@ -49,11 +57,11 @@ export class InventoryUnit {
   @Field(() => Product, { nullable: true })
   @ManyToOne(() => Product, (product) => product.inventoryUnits)
   @JoinColumn({ name: "product_id" })
-  product: Relation<Product>;
+  product: Relation<IProduct>;
 
   @Field(() => [RentalItem], { nullable: true })
   @OneToMany(() => RentalItem, (rentalItem) => rentalItem.inventoryUnit)
-  rentalItems: Relation<RentalItem[]>;
+  rentalItems: Relation<IRentalItem[]>;
 
   @Field()
   @CreateDateColumn({ name: "created_at" })

@@ -5,10 +5,12 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
-  Relation,
+  type Relation,
 } from "typeorm";
 import { ObjectType, Field, ID } from "type-graphql";
 import { Product } from "./Product";
+import type { Product as IProduct } from "./Product";
+
 
 @ObjectType()
 @Entity("categories")
@@ -23,7 +25,7 @@ export class Category {
 
   @Field(() => [Product], { nullable: true })
   @OneToMany(() => Product, (product) => product.category)
-  products: Relation<Product[]>;
+  products: Relation<IProduct[]>;
 
   @Field()
   @CreateDateColumn({ name: "created_at" })

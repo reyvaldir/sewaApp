@@ -7,11 +7,15 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
-  Relation,
+  type Relation,
 } from "typeorm";
 import { ObjectType, Field, ID, Float } from "type-graphql";
 import { Customer } from "./Customer";
+import type { Customer as ICustomer } from "./Customer";
+
 import { RentalItem } from "./RentalItem";
+import type { RentalItem as IRentalItem } from "./RentalItem";
+
 
 @ObjectType()
 @Entity("rentals")
@@ -27,7 +31,7 @@ export class Rental {
   @Field(() => Customer, { nullable: true })
   @ManyToOne(() => Customer, (customer) => customer.rentals)
   @JoinColumn({ name: "customer_id" })
-  customer: Relation<Customer>;
+  customer: Relation<ICustomer>;
 
   @Field()
   @Column({ name: "start_date" })
@@ -47,7 +51,7 @@ export class Rental {
 
   @Field(() => [RentalItem], { nullable: true })
   @OneToMany(() => RentalItem, (item) => item.rental)
-  items: Relation<RentalItem[]>;
+  items: Relation<IRentalItem[]>;
 
   @Field()
   @CreateDateColumn({ name: "created_at" })

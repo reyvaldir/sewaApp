@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { addDays, format, differenceInDays } from "date-fns";
 import { DayPicker, DateRange } from "react-day-picker";
 import "react-day-picker/dist/style.css";
+import { useSession, signOut } from "next-auth/react";
 import { getProducts, getCategories } from "@/app/actions/pos";
 
 type ProductWithCount = Awaited<ReturnType<typeof getProducts>>[0];
@@ -40,6 +41,9 @@ export default function POSPage() {
   const [facingMode, setFacingMode] = useState<"user" | "environment">(
     "environment",
   );
+
+  // Auth session
+  const { data: session } = useSession();
 
   // Cart State
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -93,7 +97,7 @@ export default function POSPage() {
   const filteredProducts =
     activeCategory === "All Products"
       ? products
-      : products.filter((p) => p.category.name === activeCategory);
+      : products.filter((p) => p.category?.name === activeCategory);
 
   const handleAddToCart = (product: ProductWithCount) => {
     const available = product._count.inventoryUnits;
@@ -365,15 +369,15 @@ export default function POSPage() {
             </a>
           </nav>
           <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 hidden md:block"></div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-medium hidden sm:block">
-              Staff: Sarah J.
-            </span>
-            <div className="bg-center bg-no-repeat bg-cover rounded-full size-9 ring-2 ring-primary/20 bg-gray-200 dark:bg-gray-700">
-              <span className="material-symbols-outlined flex items-center justify-center h-full w-full text-gray-400">
-                person
-              </span>
-            </div>
+          <div className="flex items-center gap-4 text-sm font-medium text-[--surface-dark]">
+            <span>Staff: {session?.user?.name || "Loading..."}</span>
+            <button
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              title="Sign Out"
+              className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-red-50 hover:text-red-500 transition-colors"
+            >
+              <span className="material-symbols-outlined text-lg">logout</span>
+            </button>
           </div>
         </div>
       </header>
