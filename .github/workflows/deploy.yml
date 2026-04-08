@@ -1,26 +1,72 @@
-name: Deploy Next.js to VPS
+name: Deploy Next.js to VPS via Docker Hub
 
 on:
   push:
     branches:
       - main
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
+env:
+  IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/sewa-app
 
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
     steps:
-      - name: Deploy to VPS via SSH
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ env.IMAGE_NAME }}:latest
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Prepare directory on VPS
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            # Ganti '/var/www/sewaApp' dengan lokasi folder aplikasi di dalam VPS Anda
-            cd /var/www/sewaApp
-            git pull origin main
+            mkdir -p /var/www/sewaApp
 
-            # Matikan container yang lama, build ulang, lalu jalankan yang baru
-            docker compose down
-            docker compose up -d --build
+      - name: Copy Compose File to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          source: "docker-compose.prod.yml"
+          target: "/var/www/sewaApp"
+
+      - name: Run Docker Compose on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /var/www/sewaApp
+            export DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
+            # Pull the newly pushed image
+            docker compose -f docker-compose.prod.yml pull
+            # Restart the service cleanly
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
