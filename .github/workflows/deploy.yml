@@ -1,0 +1,26 @@
+name: Deploy Next.js to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            # Ganti '/var/www/sewaApp' dengan lokasi folder aplikasi di dalam VPS Anda
+            cd /var/www/sewaApp
+            git pull origin main
+
+            # Matikan container yang lama, build ulang, lalu jalankan yang baru
+            docker compose down
+            docker compose up -d --build
